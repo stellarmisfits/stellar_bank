@@ -37,6 +37,7 @@ api.post('/validate_token', async (req, res) => {
     return res.status(201).send('Token frozen')
   }
 
+  console.log('200 OK');
   return res.status(200).send('OK')
 })
 

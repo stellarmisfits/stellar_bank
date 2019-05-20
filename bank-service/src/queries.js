@@ -2,7 +2,7 @@ const dbQuery = require('./db')
 
 const getToken = (token) => {
   const sql = `SELECT * FROM tokens WHERE token=$1`
-  const params = [email]
+  const params = [token]
   return dbQuery(sql, params)
 }
 

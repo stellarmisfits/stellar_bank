@@ -6,6 +6,7 @@ const queries = require('./queries')
 const api = express.Router()
 
 api.post('/register', async (req, res) => {
+  console.log('/register')
   const {token, email, publicKey} = req.body;
   const result = await queries.getUserByEmailAndToken(email, token)
 
@@ -22,6 +23,11 @@ api.post('/register', async (req, res) => {
   // check if user complies with KYC rules
   axios.post(`http://localhost:3002/api/validate`, {email})
     .then((response) => {
+      console.log('/api/validate');
+      const {status, data} = response
+      if (status !== 200) {
+        return res.status(status).send(data)
+      }
       console.log(`Status: ${response.status}, ${response.data}`);
     }).catch((error) => {
       console.log(error);
@@ -29,6 +35,7 @@ api.post('/register', async (req, res) => {
     })
   
   // check if token exists
+  // check if token is frozen
   axios.post(`http://localhost:3003/api/validate_token`, {token})
     .then((response) => {
       console.log(`Status: ${response.status}, ${response.data}`);
@@ -37,10 +44,8 @@ api.post('/register', async (req, res) => {
       return res.status(500).send('Something went wrong')
     })
 
-
-  
-  // check if token is frozen
   // create trust line with distributor
+  // TODO:
 })
 
 // TODO:

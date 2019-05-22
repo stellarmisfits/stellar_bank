@@ -1,3 +1,6 @@
+# my rules
+_*.json
+
 # Logs
 logs
 *.log

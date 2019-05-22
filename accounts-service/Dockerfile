@@ -1,22 +1,20 @@
-FROM node:latest
+FROM node:alpine
 
 RUN addgroup -S IBM && adduser -S -g IBM ibmer
-
 ENV HOME=/home/ibmer
 
-COPY package*.json $HOME/app
-
-COPY src $HOME/app/src
+COPY package*.json $HOME/app/
+COPY src $HOME/app/src/
+COPY .env $HOME/app/
 
 WORKDIR $HOME/app
 
-RUN chown -R ibmer:ibmer $HOME/* /usr/local/ && \
-    npm cache clean && \
-    npm install --silent --progress=false && \ # --production && \
-    chown -R ibmer:ibmer $HOME/*
+RUN chown -R ibmer:IBM $HOME/* /usr/local/
+RUN npm install
+RUN chown -R ibmer:IBM $HOME/* /usr/local/
 
 USER ibmer
 
-EXPOSE 3000
+EXPOSE 3009 3010
 
-CMD ["npm", "start"]
+CMD npm start

@@ -7,8 +7,28 @@ const api = express.Router()
 
 // TODO:
 api.post('/ico', async (req, res) => {
+  const {token, sponsorSeed, amount} = req.body;
+
+  let result = await queries.getToken(token)
+
+  if (!result) {
+    console.log('error DB')
+    return res.status(500).send('DB error')
+  }
+
+  if (result.rows.length !== 0) {
+    console.log(`Token ${token} exists`);
+    return res.status(201).send(`Token ${token} exists`)
+  }
+
+  // create issuer
+  // create distributor
+  // create trust line: distributor -> issuer
+  // authorize trust line: issuer -> distributor
+
+  // result = await queries.create  
+
   res.status(501).send('Not implemented function: balances')
-  
 })
 
 // TODO:

@@ -6,12 +6,13 @@ const getToken = (token) => {
   return dbQuery(sql, params)
 }
 
-// const getUserByEmailAndToken = (email, token) => {
-//   const sql = `SELECT * FROM accounts WHERE email=$1 AND token=$2`
-//   const params = [email, token]
-//   return dbQuery(sql, params)
-// }
+const createToken = (token, issuerSeed, distributorSeed, amount) => {
+  const sql = `INSERT INTO tokens(token, issuerSeed, distributorSeed, amount) VALUES($1, $2, $3, $4)`
+  const params = [token, issuerSeed, distributorSeed, amount]
+  return dbQuery(sql, params)
+}
 
 module.exports = {
   getToken,
+  createToken,
 }

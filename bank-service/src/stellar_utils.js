@@ -1,17 +1,7 @@
 "use strict"
 
 const StellarSDK = require('stellar-sdk')
-
-const handleStellarCall = async (f, ...args) => {
-  let result
-  try {
-    result = await f(...args)
-  }
-  catch (e) {
-    console.log(`StellarAPI erorr: ${e}`)
-  }
-  return result
-}
+const colors = require('colors')
 
 const fundAccount = (name, sponsorSeed) => {
   return new Promise(async (resolve, reject) => {
@@ -36,7 +26,7 @@ const fundAccount = (name, sponsorSeed) => {
       destination: newAcc.publicKey(),
       startingBalance: '1000' // TODO: hardcoded
     }))
-    .addMemo(StellarSDK.Memo.text(`Creating ${name} acc`))
+    // .addMemo(StellarSDK.Memo.text(`Creating ${name} acc`))
     .setTimeout(1000)
     .build();
     
@@ -87,35 +77,41 @@ const createTrustLine = (token, distributorSeed, issuerPubk) => {
 }
 
 const authorizeTrustLine = (token, distributorPubk, issuerSeed) => {
-  const issuer = StellarSDK.Keypair.fromSecret(issuerSeed)
-  StellarSDK.Network.useTestNetwork()
-  const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
+  return new Promise((resolve, reject) => {
 
-  server.loadAccount(issuer.publicKey())
+    const issuer = StellarSDK.Keypair.fromSecret(issuerSeed)
+    StellarSDK.Network.useTestNetwork()
+    const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
+    
+    server.loadAccount(issuer.publicKey())
     .then((issuerAcc) => {
-      const tx = new StellarSdk.TransactionBuilder(issuerAcc, {fee: 100})
-        .addOperation(StellarSDK.Operation.allowTrust({
-          trustor: distributorPubk,
-          assetCode: token,
-          authorize: true,
-          source: issuer.publicKey()
-        }))
-        // .addMemo(StellarSDK.Memo.text(`${token} trusline: Issuer -> Distributor`))
-        .setTimeout(1000)
-        .build()
-
+      const tx = new StellarSDK.TransactionBuilder(issuerAcc, {fee: 100})
+      .addOperation(StellarSDK.Operation.allowTrust({
+        trustor: distributorPubk,
+        assetCode: token,
+        authorize: true,
+        source: issuer.publicKey()
+      }))
+      // .addMemo(StellarSDK.Memo.text(`${token} trusline: Issuer -> Distributor`))
+      .setTimeout(1000)
+      .build()
+      
       tx.sign(issuer)
-      return server.submitTransaction(tx)
+      // TODO: return can only reject it will not resolve?
+      server.submitTransaction(tx)
+        .then(result => resolve(result))
+        .catch(error => reject(error))
+    })
+    .then((result) => {
+      console.log(`SUCCESS. ${token} trusline: Issuer -> Distributor`.green)
+      console.log(result)
+      resolve()
+    })
+    .catch((error) => {
+      console.error(`${error}!`.red)
+      reject(new Error(error))
+    });
   })
-  .then((result) => {
-    console.log(`SUCCESS. ${token} trusline: Issuer -> Distributor`.green)
-    console.log(result)
-    resolve()
-  })
-  .catch((error) => {
-    console.error(`${error}!`.red)
-    reject(new Error(error))
-  });
 }
 
 module.exports = {

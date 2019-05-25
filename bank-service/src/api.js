@@ -6,7 +6,6 @@ const queries = require('./queries')
 
 const api = express.Router()
 
-// TODO:
 api.post('/ico', async (req, res) => {
   console.log(`ICO KURWA`)
   const {token, sponsorSeed, amount} = req.body;
@@ -48,7 +47,7 @@ api.post('/ico', async (req, res) => {
     await stellarUtils.createTrustLine(token, distributor.seed, issuer.pubk)
   }
   catch (error) {
-    console.log(`Error creating trusline: ${error}`);
+    console.log(`Error creating trusline: ${error}`)
     return res.status(501).send(error)
   }
 
@@ -57,8 +56,8 @@ api.post('/ico', async (req, res) => {
      await stellarUtils.authorizeTrustLine(token, distributor.pubk, issuer.seed)
   }
   catch (error) {
-    console.log(`Error authorizing trusline: ${error}`);
-    return res.status(504).send(error)
+    console.log(`Error authorizing trusline: ${error}`)
+    return res.status(501).send(error)
   }
 
   // insert issuer
@@ -94,7 +93,6 @@ api.post('/ico', async (req, res) => {
 // TODO:
 api.post('/balance', async (req, res) => {
   res.status(501).send('Not implemented function: balance')
-  
 })
 
 // TODO:
@@ -112,12 +110,7 @@ api.post('/validate_token', async (req, res) => {
     return res.status(201).send('Token not found')
   }
 
-  if (result.rows[0].frozen) {
-    console.log('Token frozen');
-    return res.status(201).send('Token frozen')
-  }
-
-  console.log('200 OK');
+  console.log('200 sending row');
   return res.status(200).send('OK')
 })
 

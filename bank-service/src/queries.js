@@ -38,7 +38,7 @@ module.exports = {
 
 // const test2 = () => {
 //   console.log('dupa')
-//   const sql = `SELECT * FROM tokens`
+//   const sql = `SELECT * FROM investors`
 //   const params = []
 //   return dbQuery(sql, params)
 // }

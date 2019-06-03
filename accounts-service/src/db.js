@@ -1,12 +1,13 @@
 const { Pool, Client } = require('pg')
-require('dotenv').config();
+// require('dotenv').config();
+const config = require('./config')
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOSTNAME,
-  database: process.env.DB_NAME,
+  user: config.DB_USER,
+  host: config.DB_HOSTNAME,
+  database: config.DB_NAME,
   port: 5432,
-  password: process.env.DB_PASSWORD
+  password: config.DB_PASSWORD
 })
 
 const dbQuery = (query, params, callback) => { 

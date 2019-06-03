@@ -12,7 +12,14 @@ const getUserByEmailAndToken = (email, token) => {
   return dbQuery(sql, params)
 }
 
+const getIssuerByToken = (token) => {
+  const sql = `SELECT issuer FROM tokens WHERE name=$1`
+  const params = [token]
+  return dbQuery(sql, params)
+}
+
 module.exports = {
   getUserByEmail,
-  getUserByEmailAndToken
+  getUserByEmailAndToken,
+  getIssuerByToken,
 }

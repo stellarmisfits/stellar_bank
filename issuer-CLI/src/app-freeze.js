@@ -4,4 +4,7 @@ program
   .option('-t, --token <name>', 'token name')
   .parse(process.argv);
 
-console.log(program.token);
+if (!program.token) 
+  throw new Error('--token arg required')
+
+console.log('not implemented');

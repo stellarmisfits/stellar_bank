@@ -12,6 +12,12 @@ program
   .option('-a, --amount <amount>', 'Token amount to be minted')
   .parse(process.argv)
 
+if (!program.token) 
+  throw new Error('--token arg required')
+
+if (!program.amount) 
+  throw new Error('--amount arg required')
+
 const createAcc = (name) => {
   const newAcc = StellarSdk.Keypair.random()
   const account = { username: `${name}${program.token}` }

@@ -45,18 +45,7 @@ const createAcc = (name) => {
 
 console.log(`Creating ${program.token} asset`);
 
-let sponsor 
-if (fs.existsSync('./_sponsor.json')) {
-  const rawData = fs.readFileSync('./_sponsor.json')
-  const jsonData = JSON.parse(rawData)
-  sponsor = Promise.resolve(jsonData)
-}
-else {
-  console.log(`creating sponsor account`);
-  sponsor = createAcc('sponsor')
-}
-
-sponsor
+createAcc('sponsor')
   .then((data) => {
     return axios.post(
       `http://localhost:3005/api/ico`, 

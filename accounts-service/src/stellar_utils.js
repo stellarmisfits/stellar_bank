@@ -1,24 +1,22 @@
-const StellarSdk = require('stellar-sdk')
+const StellarSDK = require('stellar-sdk')
 const colors = require('colors')
 
-const authorizeTrustLine = (token, investorPubk, issuerSeed) => {
+const allowTrustLineAuth = (token, investorPubk, issuerSeed, authorize) => {
   return new Promise((resolve, reject) => {
-    issuer = StellarSdk.Keypair.fromSecret(issuerSeed)
+    const issuer = StellarSDK.Keypair.fromSecret(issuerSeed)
     
-    StellarSdk.Network.useTestNetwork()
-    const server = new StellarSdk.Server('https://horizon-testnet.stellar.org')
+    StellarSDK.Network.useTestNetwork()
+    const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
     
     server.loadAccount(issuer.publicKey())
       .then((issuerAcc) => {
-        const tx = new StellarSdk.TransactionBuilder(issuerAcc, {fee: 100})
-          .addOperation(StellarSdk.Operation.allowTrust({
+        const tx = new StellarSDK.TransactionBuilder(issuerAcc, {fee: 100})
+          .addOperation(StellarSDK.Operation.allowTrust({
             trustor: investorPubk,
             assetCode: token,
-            authorize: true,
-            //limit: "10", // <-- omit this parameter to make is unlimited, or set it to number of tokens emitted
+            authorize: authorize,
             source: issuer.publicKey()
           }))
-          .addMemo(StellarSdk.Memo.text('Allow trust'))
           .setTimeout(1000)
           .build()
       
@@ -26,16 +24,14 @@ const authorizeTrustLine = (token, investorPubk, issuerSeed) => {
       return server.submitTransaction(tx)
     })
     .then((result) => {
-      console.log('SUCCESSFULLY authorized trust line to investor'.green)
       resolve('OK')
     })
     .catch((error) => {
-      console.error(`${error}!`.red)
+      console.log(Object.entries(error.response.data.extras.result_codes));
       reject(new Error(error))
     });
   })
 }
-
 module.exports = {
-  authorizeTrustLine,
+  allowTrustLineAuth,
 }

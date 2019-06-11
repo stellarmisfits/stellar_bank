@@ -1,5 +1,5 @@
 'use strict'
-
+const StellarSdk = require('stellar-sdk');
 const fs = require('fs')
 const axios = require('axios')
 const program = require('commander')
@@ -10,31 +10,33 @@ program
   .option('-t, --token <token>', 'token name')
   .parse(process.argv)
 
+if (!program.token) 
+  throw new Error('--token arg required')
+
+if (!program.username) 
+  throw new Error('--username arg required')
+
 const userJSON = fs.readFileSync(`_${program.username}.json`, { encoding: 'utf-8' })
-const {email, publicKey} = JSON.parse(userJSON)
 
-// TODO: hardcoded endpoint
-axios.post(`http://localhost:3001/api/register`,
-  { 
-    token: program.token,
-    email,
-    publicKey
-  }).then((response) => {
+const {email, publicKey, seed} = JSON.parse(userJSON)
+const userKeys = StellarSdk.Keypair.fromSecret(seed)
+
+axios.post(`http://localhost:3001/api/register`, { token: program.token, email, publicKey })
+  .then((response) => {
     const { status, data } = response
+    console.log(`Status: ${status}`)
+    console.log(`Data: ${data}`)
 
-    if (status === 201) {
+    if (status !== 200) {
+      // todo Prmise.reject(data)
       console.log(`Error: ${data}`.red)
       process.exit()
     }
 
     if (status === 200) {
-      
+      console.log(`SUCCESS. ${program.token} issuer created trustline with you`.green)
     }
-    // if (status !== 200) {
-    //   return new Error(`Status code !== 200. response.body=${JSON.stringify(body)}`)
-    // }
-
   }).catch((error) => {
-    console.log(error)
-    return new Error(`Error: ${error}`)
-  })
+    console.log(error.response.data)
+    // return new Error(`Error: ${error}`)
+})

@@ -7,6 +7,7 @@ program
   .version('0.0.1')
   .description('Fake package manager')
   .command('create-account', 'create Stellar account').alias('c')
+  .command('trustIssuer', 'register to ICO').alias('i')
   .command('register', 'register to ICO').alias('r')
   .command('balance', 'get asset balance').alias('b')
   .command('transfer', 'transfer funds to other account').alias('t')

@@ -6,6 +6,18 @@ const selectToken = (token) => {
   return dbQuery(sql, params)
 }
 
+const getUserByEmailAndToken = (email, token) => {
+  const sql = `SELECT * FROM investors WHERE email=$1 AND token=$2`
+  const params = [email, token]
+  return dbQuery(sql, params)
+}
+
+const getIssuerByToken = (token) => {
+  const sql = `SELECT pubk, seed FROM tokens AS t, bankaccounts AS ba WHERE t.name=$1 AND t.issuer = ba.pubk LIMIT 1`
+  const params = [token]
+  return dbQuery(sql, params)
+}
+
 const insertBankAccount = (pubk, seed, name) => {
   const sql = `INSERT INTO bankaccounts(pubk, seed, name) VALUES($1, $2, $3)`
   const params = [pubk, seed, name]
@@ -18,10 +30,23 @@ const insertToken = (token, issuerSeed, distributorSeed, amount) => {
   return dbQuery(sql, params)
 }
 
+const updateInvestor = (email, token, pubkey, frozen) => {
+//   UPDATE table_name
+// SET column1 = value1, column2 = value2, ...
+// WHERE condition;
+  const sql = `UPDATE investors SET frozen = $1 WHERE email = $2 AND token = $3 AND pubk = $4`
+  const params = [frozen, email, token, pubkey]
+  return dbQuery(sql, params)
+}
+
+
 module.exports = {
   selectToken,
+  getUserByEmailAndToken,
+  getIssuerByToken,
   insertBankAccount,
   insertToken,
+  updateInvestor,
 }
 
 // const test = () => {

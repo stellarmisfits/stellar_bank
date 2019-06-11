@@ -92,39 +92,58 @@ api.post('/ico', async (req, res) => {
   res.status(200).send(`Token ${token} created`)
 })
 
-// TODO:
-api.post('/balance', async (req, res) => {
-  res.status(501).send('Not implemented function: balance')
-})
+api.post('/changeAccess', async (req, res) => {
+  const {token, email, allow} = req.body;
 
-// TODO:
-api.post('/validate_token', async (req, res) => {
-  const {token} = req.body;
-  const result = await queries.selectToken(token)
-
-  if (!result) {
-    console.log('error DB')
+  console.log(`Query token`.blue)
+  const [errorQuery, issuerRows] = await catchify(queries.getIssuerByToken(token))
+  if (errorQuery) {
+    console.log('error DB'.red)
     return res.status(500).send('DB error')
   }
 
-  if (result.rows.length === 0) {
-    console.log('Token not found');
-    return res.status(201).send('Token not found')
+  if (issuerRows.rows.length === 0) {
+    console.log(`Token ${token} doesn't exist`.red);
+    return res.status(201).send(`Token ${token} doesn't exist`)
+  }
+  const issuer = issuerRows.rows[0]
+
+  console.log('check if user is registered to this token'.blue)
+  const [queryError, queryResult] = await catchify(queries.getUserByEmailAndToken(email, token))
+
+  if (queryError) {
+    console.log('error DB');
+    console.log(queryError)
+    return res.status(500).send('DB query user error')
   }
 
-  console.log('200 sending row');
+  if (queryResult.rows.length === 0) {
+    console.log(`User ${email} not registered to that token ${token}`.red);
+    return res.status(201).send(`User ${email} not registered to that token ${token}`)
+  }
+
+  const investor = queryResult.rows[0]
+
+  // Stellar op: revoking authorization TrustLine
+  console.log('Stellar op: changing investor acces'.blue)
+  const [authError] = await catchify(stellarUtils.allowTrustLineAuth(token, investor.pubk, issuer.seed, allow))
+  
+  if (authError) {
+    console.log(`Error with revoking/authorization issuer -> investor ${authError}`)
+    return res.status(500).send('Error with revoking/authorization issuer -> investor')
+  }
+  
+  // updating investor access in DB
+  console.log('updating investor access in DB'.blue)
+  const [insertInvestorError] = await catchify(queries.updateInvestor(email, token, investor.pubk, !allow))
+  
+  if (insertInvestorError) {
+    console.log(insertInvestorError);
+    return res.status(500).send('DB error: freezing/unfreezing investor')
+  }
+
+  console.log(`Handling request is done!`.blue)
   return res.status(200).send('OK')
 })
-
-// TODO:
-api.post('/validate_tx', async (req, res) => {
-  res.status(501).send('Not implemented function: freeze')
-})
-
-// TODO:
-api.post('/validate_issuer', async (req, res) => {
-  res.status(501).send('Not implemented function: unfreeze')
-})
-
 
 module.exports = api

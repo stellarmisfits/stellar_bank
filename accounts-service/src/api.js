@@ -94,19 +94,4 @@ api.post('/register', async (req, res) => {
   return res.status(200).send('OK')
 })
 
-// TODO:
-api.post('/authorize', async (req, res) => {
-  res.status(501).send('Not implemented function: freeze')
-})
-
-// TODO:
-api.post('/freeze', async (req, res) => {
-  res.status(501).send('Not implemented function: freeze')
-})
-
-// TODO:
-api.post('/unfreeze', async (req, res) => {
-  res.status(501).send('Not implemented function: unfreeze')
-})
-
 module.exports = api

@@ -36,12 +36,14 @@ module.exports = {
 //   return insertToken('FUUUUN', p, s, 1000)
 // }
 
-// const test2 = () => {
-//   console.log('dupa')
-//   const sql = `SELECT * FROM investors`
-//   const params = []
-//   return dbQuery(sql, params)
-// }
+
+// live erro check
+const test2 = () => {
+  console.log('dupa')
+  const sql = `SELECT issuer FROM tokens where name='DUPA'`
+  const params = []
+  return dbQuery(sql, params)
+}
 
 
 // test2()

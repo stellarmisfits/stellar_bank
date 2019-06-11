@@ -24,14 +24,12 @@ const fundAccount = (name, sponsorSeed) => {
     const tx = new StellarSDK.TransactionBuilder(sponsorAccount, {fee: 100})
     .addOperation(StellarSDK.Operation.createAccount({
       destination: newAcc.publicKey(),
-      startingBalance: '1000' // TODO: hardcoded
+      startingBalance: '100',
     }))
-    // .addMemo(StellarSDK.Memo.text(`Creating ${name} acc`))
     .setTimeout(1000)
     .build();
     
     tx.sign(sponsor);
-    
     
     server.submitTransaction(tx)
       .then(() => {
@@ -39,83 +37,107 @@ const fundAccount = (name, sponsorSeed) => {
       })
       .catch(error => {
         const msg = error.response.data.extras.result_codes.transaction
+        console.log(error.response.data.extras.result_codes)
         reject(`StellarAPI2 erorr: ${msg}`) 
       })
   })
 }
 
-const createTrustLine = (token, distributorSeed, issuerPubk) => {
+const allowTrustLineAuth = (token, investorPubk, issuerSeed, authorize) => {
   return new Promise((resolve, reject) => {
-    const distributor = StellarSDK.Keypair.fromSecret(distributorSeed)
-
-    StellarSDK.Network.useTestNetwork()
-    const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
-    
-    server.loadAccount(distributor.publicKey())
-      .then((distributorAcc) => {
-        const tx = new StellarSDK.TransactionBuilder(distributorAcc, {fee: 100})
-          .addOperation(StellarSDK.Operation.changeTrust({
-            asset: new StellarSDK.Asset(token, issuerPubk),
-            source: distributor.publicKey()
-          }))
-          // .addMemo(StellarSDK.Memo.text(`${token} trusline: Distributor -> issuer`))
-          .setTimeout(1000)
-          .build()
-        
-        tx.sign(distributor)
-        resolve(server.submitTransaction(tx))
-      })
-      .then((result) => {
-        console.log(`SUCCESS. ${token} trusline: Distributor -> issuer`.green)
-        resolve()
-      })
-      .catch((error) => {
-        console.error(`${error}`.red)
-        reject(new Error(error))
-      });
-  })
-}
-
-const authorizeTrustLine = (token, distributorPubk, issuerSeed) => {
-  return new Promise((resolve, reject) => {
-
     const issuer = StellarSDK.Keypair.fromSecret(issuerSeed)
+    
     StellarSDK.Network.useTestNetwork()
     const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
     
     server.loadAccount(issuer.publicKey())
-    .then((issuerAcc) => {
-      const tx = new StellarSDK.TransactionBuilder(issuerAcc, {fee: 100})
-      .addOperation(StellarSDK.Operation.allowTrust({
-        trustor: distributorPubk,
-        assetCode: token,
-        authorize: true,
-        source: issuer.publicKey()
-      }))
-      // .addMemo(StellarSDK.Memo.text(`${token} trusline: Issuer -> Distributor`))
-      .setTimeout(1000)
-      .build()
+      .then((issuerAcc) => {
+        const tx = new StellarSDK.TransactionBuilder(issuerAcc, {fee: 100})
+          .addOperation(StellarSDK.Operation.allowTrust({
+            trustor: investorPubk,
+            assetCode: token,
+            authorize: authorize,
+            source: issuer.publicKey()
+          }))
+          .setTimeout(1000)
+          .build()
       
-      tx.sign(issuer)
-      // TODO: return can only reject it will not resolve?
-      server.submitTransaction(tx)
-        .then(result => resolve(result))
-        .catch(error => reject(error))
+      tx.sign(issuer);
+      return server.submitTransaction(tx)
     })
     .then((result) => {
-      console.log(`SUCCESS. ${token} trusline: Issuer -> Distributor`.green)
-      console.log(result)
-      resolve()
+      resolve('OK')
     })
     .catch((error) => {
-      console.error(`${error}!`.red)
+      console.log(Object.entries(error.response.data.extras.result_codes));
       reject(new Error(error))
     });
   })
 }
 
+const changeTrustLineAuth = (token, trustSeekerSeed, issuerPubKey) => {
+  return new Promise((resolve, reject) => {
+    const trustSeeker = StellarSDK.Keypair.fromSecret(trustSeekerSeed)
+    
+    StellarSDK.Network.useTestNetwork()
+    const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
+    
+    server.loadAccount(trustSeeker.publicKey())
+      .then((trustSeekerAcc) => {
+        const tx = new StellarSDK.TransactionBuilder(trustSeekerAcc, {fee: 100})
+          .addOperation(StellarSDK.Operation.changeTrust({
+            asset: new StellarSDK.Asset(token, issuerPubKey),
+            source: trustSeeker.publicKey()
+          }))
+          .setTimeout(1000)
+          .build()
+      
+      tx.sign(trustSeeker);
+      return server.submitTransaction(tx)
+    })
+    .then((result) => {
+      resolve('OK')
+    })
+    .catch((error) => {
+      console.log(error.response.data.extras.result_codes);
+      reject(new Error(error))
+    });
+  })
+}
+
+const setAuthFlag = (issuerSeed) => {
+  return new Promise((resolve, reject) => {
+    const issuer = StellarSDK.Keypair.fromSecret(issuerSeed)
+    
+    StellarSDK.Network.useTestNetwork()
+    const server = new StellarSDK.Server('https://horizon-testnet.stellar.org')
+    
+    server.loadAccount(issuer.publicKey())
+      .then((issuerAcc) => {
+        const tx = new StellarSDK.TransactionBuilder(issuerAcc, {fee: 100})
+          .addOperation(StellarSDK.Operation.setOptions({
+            setFlags: StellarSDK.AuthRequiredFlag | StellarSDK.AuthRevocableFlag
+          }))
+          .setTimeout(1000)
+          .build();
+
+        tx.sign(issuer);
+
+        return server.submitTransaction(tx);
+      })
+      .then((result) => {
+        resolve('OK')
+      })
+      .catch((error) => {
+        console.log(error.response.data.extras.result_codes);
+        reject(new Error(error));
+      });
+  })
+}
+
 module.exports = {
   fundAccount,
-  createTrustLine,
-  authorizeTrustLine
+  allowTrustLineAuth,
+  changeTrustLineAuth,
+  setAuthFlag,
 }

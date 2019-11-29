@@ -1,5 +1,6 @@
 # my rules
 _*.json
+**build**
 
 # Logs
 logs

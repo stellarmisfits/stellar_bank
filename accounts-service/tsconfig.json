@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "module": "commonjs",
+      "target": "es6",
+      "allowJs": true,
+      "outDir": "build",
+      "strict": true,
+      "noImplicitReturns": true,
+      "esModuleInterop": true,
+      "removeComments": true
+  },
+  "include": [
+      "src",
+      "tests"
+  ],
+  "exclude": [
+      "node_modules"
+  ]
+}
